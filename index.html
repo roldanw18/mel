@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blessd - Como Oreo | Luxury Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@300;700&display=swap"
+        rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        :root {
+            --primary: #0046be;
+            --accent: #00d4ff;
+            --melo: #7000ff;
+            --bg: #020205;
+        }
+
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg);
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* Fondo Animado Estilo Ciudad */
+        .city-bg {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 60%;
+            background: linear-gradient(to top, rgba(0, 70, 190, 0.1) 0%, transparent 100%);
+            z-index: 0;
+        }
+
+        /* Grid de perspectiva 3D */
+        .grid {
+            position: absolute;
+            width: 200%;
+            height: 100%;
+            bottom: -50%;
+            left: -50%;
+            background-image: linear-gradient(var(--primary) 1px, transparent 1px),
+                linear-gradient(90deg, var(--primary) 1px, transparent 1px);
+            background-size: 50px 50px;
+            transform: perspective(500px) rotateX(60deg);
+            animation: moveGrid 5s linear infinite;
+            opacity: 0.2;
+            z-index: 1;
+        }
+
+        @keyframes moveGrid {
+            0% {
+                background-position: 0 0;
+            }
+
+            100% {
+                background-position: 0 50px;
+            }
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+        }
+
+        /* Foto con Neón Dual */
+        .photo-wrap {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin-bottom: 20px;
+        }
+
+        .photo-container {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 4px solid #fff;
+            overflow: hidden;
+            box-shadow: 0 0 20px var(--accent), 0 0 40px var(--primary);
+            position: relative;
+            z-index: 2;
+        }
+
+        .photo-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Título con efecto brillo */
+        h1 {
+            font-family: 'Bebas Neue', cursive;
+            font-size: 5rem;
+            margin: 0;
+            letter-spacing: 5px;
+            text-shadow: 0 0 10px var(--accent), 0 0 30px var(--primary);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from {
+                transform: scale(1);
+                text-shadow: 0 0 10px var(--accent);
+            }
+
+            to {
+                transform: scale(1.05);
+                text-shadow: 0 0 25px var(--melo), 0 0 40px var(--accent);
+            }
+        }
+
+        .lyrics {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            max-width: 90%;
+        }
+
+        .lyrics p {
+            font-size: 1.4rem;
+            margin: 10px 0;
+            font-weight: 700;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .highlight {
+            color: var(--accent);
+            text-transform: uppercase;
+        }
+
+        /* Partículas: Oreo y Corazones */
+        .particle {
+            position: absolute;
+            pointer-events: none;
+            z-index: 5;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="grid"></div>
+    <div class="city-bg"></div>
+
+    <div class="container">
+        <div class="photo-wrap" id="photo">
+            <div class="photo-container">
+                <img src="Captura.PNG" alt="Favorita">
+            </div>
+        </div>
+
+        <h1 id="title">COMO OREO</h1>
+
+        <div class="lyrics">
+            <p class="line">"Hola, mi amor, <span class="highlight">soy yo de nuevo</span></p>
+            <p class="line">Mintiendo que estás sola y que ya no tiene' jevo</p>
+            <p class="line">Y el volverte a meter, mami, es mi mayor anhelo</p>
+            <p class="line">Sabes que yo estoy <span class="highlight">rico</span> y para usted todo melo (hoy)"</p>
+        </div>
+    </div>
+
+    <script>
+        // Animación inicial de la letra
+        gsap.to(".line", {
+            opacity: 1,
+            y: 0,
+            duration: 1,
+            stagger: 0.8,
+            ease: "power4.out",
+            delay: 1
+        });
+
+        // Función para crear lluvia de elementos
+        function createParticle(type) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+
+            if (type === 'oreo') {
+                particle.innerHTML = '🍪'; // Representación de la galleta
+                particle.style.filter = 'drop-shadow(0 0 5px #000)';
+            } else {
+                particle.innerHTML = '💙';
+            }
+
+            particle.style.left = Math.random() * 100 + 'vw';
+            particle.style.top = '-50px';
+            particle.style.fontSize = (Math.random() * 20 + 20) + 'px';
+            document.body.appendChild(particle);
+
+            const duration = Math.random() * 3 + 4;
+
+            gsap.to(particle, {
+                y: '110vh',
+                x: (Math.random() - 0.5) * 200,
+                rotation: Math.random() * 360,
+                duration: duration,
+                ease: "none",
+                onComplete: () => particle.remove()
+            });
+        }
+
+        // Intervalos de generación
+        setInterval(() => createParticle('heart'), 500);
+        setInterval(() => createParticle('oreo'), 1200);
+
+        // Efecto interactivo: Al mover el mouse, la foto reacciona
+        document.addEventListener('mousemove', (e) => {
+            const x = (e.clientX / window.innerWidth - 0.5) * 30;
+            const y = (e.clientY / window.innerHeight - 0.5) * 30;
+            gsap.to("#photo", { rotationY: x, rotationX: -y, duration: 0.5 });
+        });
+
+    </script>
+</body>
+
+</html>
