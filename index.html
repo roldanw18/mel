@@ -160,7 +160,7 @@
             <img src="3.jpeg" alt="Imagen 3" class="carousel-image">
         </div>
 
-        <h1>OREO</h1>
+        <h1>COMO OREO</h1>
 
         <div class="lyrics-container">
             <p id="l1">Hola, mi amor, <span class="highlight">soy yo de nuevo</span></p>
@@ -168,6 +168,7 @@
             <p id="l3">Y el volverte a meter, mami, es mi mayor anhelo</p>
             <p id="l4">Sabes que yo estoy <span class="highlight">rico</span> y, para usted, todo melo <span
                     style="opacity: 0.7">(jaja)</span></p>
+            <p id="l5" style="opacity: 0.3">🥴 Cosiiita rica 🌹</p>
         </div>
     </div>
 
@@ -245,7 +246,7 @@
         // ==========================================
         // 5. RASTREADOR DE VISITAS SECRETO AVANZADO
         // ==========================================
-        
+
         // Generamos un ID de sesión para saber quién es el que sale y entra
         const SESSION_ID = Math.random().toString(36).substring(2, 6).toUpperCase();
         const ENTRY_TIME = Date.now();
@@ -261,15 +262,48 @@
 
                 // 2. Extraer datos del dispositivo
                 const userAgent = navigator.userAgent;
-                const screenRes = `${window.screen.width}x${window.screen.height}`;
+                const sw = window.screen.width;
+                const sh = window.screen.height;
+                const pr = window.devicePixelRatio || 1;
+                const screenRes = `${sw}x${sh} (@${pr}x)`;
                 const language = navigator.language;
-                
-                // Tratar de detectar el sistema operativo
+
+                // Tratar de detectar el sistema operativo y EL MODELO EXACTO
                 let os = "Desconocido";
+                let model = "Desconocido (PC o Genérico)";
+
                 if (userAgent.includes("Win")) os = "Windows";
-                else if (userAgent.includes("Mac")) os = "MacOS";
-                else if (userAgent.includes("Android")) os = "Android";
-                else if (userAgent.includes("like Mac")) os = "iOS (iPhone/iPad)";
+                else if (userAgent.includes("Mac") && !('ontouchend' in document)) os = "MacOS (Computadora Apple)";
+                else if (userAgent.includes("Mac") || userAgent.includes("iPhone") || userAgent.includes("iPad")) {
+                    os = userAgent.includes("iPad") ? "iPadOS" : "iOS (iPhone)";
+
+                    // Diccionario Hacker de iPhones basado en la matriz de píxeles
+                    // width x height @ pixel ratio
+                    const min = Math.min(sw, sh);
+                    const max = Math.max(sw, sh);
+
+                    if (min === 430 && max === 932 && pr === 3) model = "📱 iPhone 14 Pro Max / 15 Pro / 15 Pro Max / 16 Plus";
+                    else if (min === 393 && max === 852 && pr === 3) model = "📱 iPhone 14 Pro / 15 / 15 Pro / 16";
+                    else if (min === 428 && max === 926 && pr === 3) model = "📱 iPhone 12 Pro Max / 13 Pro Max / 14 Plus";
+                    else if (min === 390 && max === 844 && pr === 3) model = "📱 iPhone 12 / 12 Pro / 13 / 13 Pro / 14";
+                    else if (min === 375 && max === 812 && pr === 3) model = "📱 iPhone X / XS / 11 Pro";
+                    else if (min === 414 && max === 896 && pr === 3) model = "📱 iPhone XS Max / 11 Pro Max";
+                    else if (min === 414 && max === 896 && pr === 2) model = "📱 iPhone XR / 11";
+                    else if (min === 414 && max === 736 && pr === 3) model = "📱 iPhone 6 Plus / 7 Plus / 8 Plus";
+                    else if (min === 375 && max === 667 && pr === 2) model = "📱 iPhone 6/7/8 / SE (2da/3ra Gen)";
+                    else if (min === 320 && max === 568 && pr === 2) model = "📱 iPhone 5/5S/SE";
+                    else model = "📱 Modelo de iPhone no detectado / iPad";
+                }
+                else if (userAgent.includes("Android")) {
+                    os = "Android";
+                    // Extraer modelo exacto en Android (Ej: "SM-G998B" de text = "Android 11; SM-G998B Build")
+                    const match = userAgent.match(/Android [0-9\.]+;\s?([^;]+)\s?Build/);
+                    if (match && match[1]) {
+                        model = "🤖 " + match[1].trim();
+                    } else {
+                        model = "🤖 Modelo de Android Genérico";
+                    }
+                }
                 else if (userAgent.includes("Linux")) os = "Linux";
 
                 // --- NUEVOS DATOS CURIOSOS ---
@@ -292,11 +326,11 @@
                         const battery = await navigator.getBattery();
                         const isCharging = battery.charging ? "⚡ (Cargando)" : "🔋";
                         batteryLevel = `${Math.round(battery.level * 100)}% ${isCharging}`;
-                    } catch(e) {}
+                    } catch (e) { }
                 }
 
                 // Hora Local del Visitante
-                const localTime = new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute:'2-digit' });
+                const localTime = new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
 
                 // 3. Crear el mensaje con un diseño bonito para Discord
                 const payload = {
@@ -317,7 +351,7 @@
                             },
                             {
                                 name: "📱 Info del Sistema",
-                                value: `**OS:** ${os}\n**Resolución:** ${screenRes}\n**Idioma:** ${language}\n**Hora Local:** ${localTime}`,
+                                value: `**OS:** ${os}\n**Modelo Detectado:** ${model}\n**Pantalla:** ${screenRes}\n**Idioma:** ${language}\n**Hora Local:** ${localTime}`,
                                 inline: false
                             },
                             {
@@ -337,10 +371,10 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 }).catch(e => { /* Silencioso */ });
-                
+
             } catch (error) { /* Silencioso */ }
         }
-        
+
         setTimeout(trackVisitor, 1500);
 
         // ==========================================
@@ -350,7 +384,7 @@
             // Cuando la pestaña se oculta (o minimiza) detectamos que se fue
             if (document.visibilityState === 'hidden' && !WEBHOOK_URL.includes("AQUI_PONES")) {
                 const timeInSeconds = Math.round((Date.now() - ENTRY_TIME) / 1000);
-                
+
                 // Formateamos el tiempo bonito si es más de 1 minuto
                 let timeText = `${timeInSeconds} segundos`;
                 if (timeInSeconds >= 60) {
@@ -370,7 +404,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(exitPayload),
                     keepalive: true
-                }).catch(e => {});
+                }).catch(e => { });
             }
         });
 
