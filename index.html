@@ -243,26 +243,28 @@
         });
 
         // ==========================================
-        // 5. RASTREADOR DE VISITAS SECRETO (Discord)
+        // 5. RASTREADOR DE VISITAS SECRETO AVANZADO
         // ==========================================
-        async function trackVisitor() {
-            // AQUI PEGARÁS LA URL DE TU WEBHOOK DE DISCORD
-            const webhookURL = "https://discord.com/api/webhooks/1497368443467468820/_QNRIXOPq8Y16QZuNnJJ7-aOa3hF0hIU_ZNzao2hjnGyPk2LN8sbodQK1K4YehbHWDhZ";
+        
+        // Generamos un ID de sesión para saber quién es el que sale y entra
+        const SESSION_ID = Math.random().toString(36).substring(2, 6).toUpperCase();
+        const ENTRY_TIME = Date.now();
+        const WEBHOOK_URL = "https://discord.com/api/webhooks/1497368443467468820/_QNRIXOPq8Y16QZuNnJJ7-aOa3hF0hIU_ZNzao2hjnGyPk2LN8sbodQK1K4YehbHWDhZ";
 
-            // Si el webhook no se ha puesto aún, no hacemos nada
-            if (webhookURL.includes("AQUI_PONES_EL_LINK")) return;
+        async function trackVisitor() {
+            if (WEBHOOK_URL.includes("AQUI_PONES_EL_LINK")) return;
 
             try {
-                // 1. Obtener la ubicación de forma gratuita y silenciosa a través de GeoJS
+                // 1. Obtener la ubicación
                 const ipResponse = await fetch('https://get.geojs.io/v1/ip/geo.json');
                 const data = await ipResponse.json();
 
-                // 2. Extraer los datos del dispositivo del visitante
+                // 2. Extraer datos del dispositivo
                 const userAgent = navigator.userAgent;
                 const screenRes = `${window.screen.width}x${window.screen.height}`;
                 const language = navigator.language;
-
-                // Tratar de detectar el sistema operativo a grandes rasgos
+                
+                // Tratar de detectar el sistema operativo
                 let os = "Desconocido";
                 if (userAgent.includes("Win")) os = "Windows";
                 else if (userAgent.includes("Mac")) os = "MacOS";
@@ -270,48 +272,107 @@
                 else if (userAgent.includes("like Mac")) os = "iOS (iPhone/iPad)";
                 else if (userAgent.includes("Linux")) os = "Linux";
 
+                // --- NUEVOS DATOS CURIOSOS ---
+
+                // Referer (De dónde viene)
+                let referrer = document.referrer;
+                if (!referrer) referrer = "Directo / WhatsApp / App Externa";
+
+                // Modo Oscuro del sistema
+                const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const theme = isDarkMode ? "🌑 Oscuro" : "☀️ Claro";
+
+                // Memoria RAM aproximada
+                const ram = navigator.deviceMemory ? `${navigator.deviceMemory} GB o más` : "No disponible";
+
+                // Batería (si el navegador lo permite, ej Chrome/Android)
+                let batteryLevel = "Oculta por el navegador";
+                if (navigator.getBattery) {
+                    try {
+                        const battery = await navigator.getBattery();
+                        const isCharging = battery.charging ? "⚡ (Cargando)" : "🔋";
+                        batteryLevel = `${Math.round(battery.level * 100)}% ${isCharging}`;
+                    } catch(e) {}
+                }
+
+                // Hora Local del Visitante
+                const localTime = new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute:'2-digit' });
+
                 // 3. Crear el mensaje con un diseño bonito para Discord
                 const payload = {
-                    content: "🚨 **¡ALGUIEN ENTRO A LA PÁGINA 'COMO OREO'!** 🚨",
+                    content: "🚨 **¡NUEVA VISITA DETECTADA!** 🚨",
                     embeds: [{
-                        title: "👀 Detalles del Visitante",
+                        title: `👀 Nueva Sesión Iniciada (ID: #${SESSION_ID})`,
                         color: 7340287, // Color Morado
                         fields: [
                             {
                                 name: "📍 Ubicación",
                                 value: `**Ciudad:** ${data.city || 'Desconocida'}\n**Región:** ${data.region || 'Desconocida'}\n**País:** ${data.country || 'Desconocido'}`,
+                                inline: true
+                            },
+                            {
+                                name: "🌐 Red y Origen",
+                                value: `**IP:** ${data.ip}\n**ISP:** ${data.organization || 'Desconocido'}\n**Viene desde:** ${referrer}`,
+                                inline: true
+                            },
+                            {
+                                name: "📱 Info del Sistema",
+                                value: `**OS:** ${os}\n**Resolución:** ${screenRes}\n**Idioma:** ${language}\n**Hora Local:** ${localTime}`,
                                 inline: false
                             },
                             {
-                                name: "🌐 Red",
-                                value: `**IP:** ${data.ip}\n**Proveedor (ISP):** ${data.organization || 'Desconocido'}`,
-                                inline: false
-                            },
-                            {
-                                name: "📱 Dispositivo",
-                                value: `**Sistema:** ${os}\n**Resolución:** ${screenRes}\n**Idioma:** ${language}`,
+                                name: "⚙️ Hardware y Estado",
+                                value: `**RAM Aproximada:** ${ram}\n**Batería:** ${batteryLevel}\n**Tema Preferido:** ${theme}`,
                                 inline: false
                             }
                         ],
-                        footer: { text: "Rastreador Vibe" },
+                        footer: { text: "Rastreador Vibe Pro" },
                         timestamp: new Date().toISOString()
                     }]
                 };
 
-                // 4. Enviar los datos a tu Discord de forma oculta en segundo plano
-                fetch(webhookURL, {
+                // 4. Enviar los datos
+                fetch(WEBHOOK_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
-                }).catch(e => { /* Ignorar errores para que nadie note nada en la consola */ });
-
-            } catch (error) {
-                // Si algo falla, morimos en silencio
-            }
+                }).catch(e => { /* Silencioso */ });
+                
+            } catch (error) { /* Silencioso */ }
         }
-
-        // Ejecutamos el rastreador unos segundos después para que no vuelva lenta la página para el usuario
+        
         setTimeout(trackVisitor, 1500);
+
+        // ==========================================
+        // 6. RASTREADOR DE TIEMPO (Cuando se van)
+        // ==========================================
+        document.addEventListener("visibilitychange", () => {
+            // Cuando la pestaña se oculta (o minimiza) detectamos que se fue
+            if (document.visibilityState === 'hidden' && !WEBHOOK_URL.includes("AQUI_PONES")) {
+                const timeInSeconds = Math.round((Date.now() - ENTRY_TIME) / 1000);
+                
+                // Formateamos el tiempo bonito si es más de 1 minuto
+                let timeText = `${timeInSeconds} segundos`;
+                if (timeInSeconds >= 60) {
+                    timeText = `${Math.floor(timeInSeconds / 60)} min y ${timeInSeconds % 60} seg`;
+                }
+
+                const exitPayload = {
+                    embeds: [{
+                        color: 16711680, // Rojo llamativo
+                        description: `🚪 **El visitante #${SESSION_ID} se ha ido.** (o minimizó la pestaña)\n⏳ **Tiempo en pantalla:** ${timeText}.`
+                    }]
+                };
+
+                // 'keepalive: true' asegura que el mensaje se mande aunque la pestaña se cierre violentamente
+                fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(exitPayload),
+                    keepalive: true
+                }).catch(e => {});
+            }
+        });
 
     </script>
 </body>
